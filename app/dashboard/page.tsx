@@ -1,0 +1,18 @@
+import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
+import { formatMoney } from "@/lib/utils";
+import { requireUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { getOwnedStore } from "@/lib/authorization";
+
+export default async function DashboardPage() {
+  const user = await requireUser(); const supabase = await createClient(); const store = await getOwnedStore(user.id);
+  if (!store) return <><header><p className="eyebrow">Welcome</p><h1 className="mt-2 text-3xl font-semibold">Launch your creator store.</h1></header><div className="mt-7"><EmptyState title="Create your home on the marketplace" detail="Choose a name and a URL, then add your first digital product when you are ready." href="/dashboard/store" action="Create your store" /></div></>;
+  const [{ data: earnings }, { count: publishedProducts }, { data: recentOrders }] = await Promise.all([
+    supabase.from("creator_earnings").select("gross_minor,platform_fee_minor,net_minor,currency,created_at,order_items(product_title,orders(customer_email,status,paid_at))").eq("store_id", store.id).order("created_at", { ascending: false }),
+    supabase.from("products").select("id", { count: "exact", head: true }).eq("store_id", store.id).eq("status", "published"),
+    supabase.from("creator_earnings").select("gross_minor,currency,created_at,order_items(product_title,orders(customer_email,status,paid_at))").eq("store_id", store.id).order("created_at", { ascending: false }).limit(5)
+  ]);
+  const totals = (earnings ?? []).reduce((acc: any, e: any) => ({ gross: acc.gross + e.gross_minor, fees: acc.fees + e.platform_fee_minor, net: acc.net + e.net_minor, currency: e.currency }), { gross: 0, fees: 0, net: 0, currency: "USD" });
+  return <><header className="flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow">{store.name}</p><h1 className="mt-2 text-3xl font-semibold">Overview</h1></div><Link href="/dashboard/products/new" className="btn-primary">Create your first product</Link></header><section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[["Gross sales", totals.gross], ["Completed orders", earnings?.length ?? 0], ["Published products", publishedProducts ?? 0], ["Platform fees", totals.fees]].map(([label, value]) => <div className="card p-5" key={String(label)}><p className="text-sm text-neutral-500">{label}</p><p className="mt-3 text-2xl font-semibold">{typeof value === "number" && (label === "Gross sales" || label === "Platform fees") ? formatMoney(value, totals.currency) : value}</p></div>)}</section><section className="mt-8 grid gap-6 xl:grid-cols-2"><div className="card p-5"><h2 className="font-medium">Net creator earnings</h2><p className="mt-3 text-3xl font-semibold">{formatMoney(totals.net, totals.currency)}</p><p className="mt-2 text-sm text-neutral-500">Recorded paid sales less the marketplace fee. This is not a withdrawal balance until a payout is completed.</p></div><div className="card p-5"><h2 className="font-medium">Recent orders</h2>{recentOrders?.length ? <ul className="mt-3 divide-y text-sm">{recentOrders.map((earning: any) => { const item = Array.isArray(earning.order_items) ? earning.order_items[0] : earning.order_items; const order = item && (Array.isArray(item.orders) ? item.orders[0] : item.orders); return <li className="flex justify-between gap-3 py-3" key={earning.created_at}><span>{item?.product_title ?? "Product"}<span className="block text-neutral-500">{order?.customer_email ?? "Guest customer"}</span></span><span>{formatMoney(earning.gross_minor, earning.currency)}</span></li>; })}</ul> : <p className="mt-3 text-sm text-neutral-500">Paid orders will appear here.</p>}</div></section></>;
+}

@@ -1,0 +1,2 @@
+"use client";
+export default function ErrorPage({ reset }: { error: Error; reset: () => void }) { return <main className="container-page py-24"><div className="card mx-auto max-w-xl p-8"><p className="eyebrow">Something went wrong</p><h1 className="mt-3 text-3xl font-semibold">We couldn&apos;t complete that request.</h1><p className="mt-3 text-neutral-600">No payment status has been changed by this error page. Please try again or contact support.</p><button className="btn-primary mt-6" onClick={reset}>Try again</button></div></main>; }

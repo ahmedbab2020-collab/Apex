@@ -1,0 +1,1 @@
+export default function RefundsPage() { return <main className="container-page max-w-3xl py-16"><h1 className="text-3xl font-semibold">Refund policy</h1><p className="mt-6 text-neutral-600">This deployment must be completed with your business&apos;s final refund policy. Requests are reviewed by the marketplace administrator and are not automatically approved.</p></main>; }

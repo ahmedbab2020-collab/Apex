@@ -1,0 +1,1 @@
+export default function PrivacyPage() { return <main className="container-page max-w-3xl py-16"><h1 className="text-3xl font-semibold">Privacy policy</h1><p className="mt-6 text-neutral-600">This deployment must be completed with your business&apos;s final privacy notice before live use. Customer data is used to fulfill purchases and administer accounts.</p></main>; }

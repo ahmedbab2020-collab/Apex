@@ -1,0 +1,1 @@
+export default function TermsPage() { return <main className="container-page max-w-3xl py-16"><h1 className="text-3xl font-semibold">Terms of service</h1><p className="mt-6 text-neutral-600">This deployment must be completed with your business&apos;s final terms before accepting live sales. Creators are responsible for lawful products and accurate descriptions.</p></main>; }
